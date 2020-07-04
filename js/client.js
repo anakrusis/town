@@ -1,25 +1,11 @@
-class TextBox {
-	constructor ( x, y, text, width, height ){
-		this.x = x;
-		this.y = y;
-		if (width) { this.width = width } else { this.width = 512 };
-		if (height) { this.height = height } else { this.height = 64 };
-		this.text = text;
-	}
-
-	onClick(){
-	
-	}
-	update(){
-	
-	}
-}
-
 var init = function(){
 	canvas = document.getElementById("Canvas");
 	canvas.style = "position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; margin: auto;"
 	ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
+	
+	buildModeCursorPos = 0;
+	buildModeTile = TILE_AIR;
 	
 	cursorX = 0;
 	cursorY = 0;
@@ -61,7 +47,7 @@ var init = function(){
 		if (screen == screen_BUILD){
 			if (currentLot.tiles[cursorY]){
 				if (currentLot.tiles[cursorY][cursorX]){
-					currentLot.tiles[cursorY][cursorX] = TILE_WALL_BRICK;
+					currentLot.tiles[cursorY][cursorX] = buildModeTile;
 				}
 			}
 		} else if (screen == screen_MAIN){
@@ -71,7 +57,6 @@ var init = function(){
 				// clicked on an entity
 				if ( ( e.x <= cursorFineX && cursorFineX <= e.x + e.width && 
 					e.y <= cursorFineY && cursorFineY <= e.y + e.height ) ){
-					//console.log(e);
 					
 					screen_ACTION.elements = [];
 					
@@ -79,52 +64,21 @@ var init = function(){
 						var im_like_tt_ooo = new TextBox( mouseX, mouseY + (a * 96), [e.actions[a].name] )
 						im_like_tt_ooo.action = e.actions[a];
 						im_like_tt_ooo.onClick = function(){
-							//console.log(e);
+							
 							this.action.onStart( player, e );
 							screen = screen_MAIN;
 						}
 						screen_ACTION.elements.push( im_like_tt_ooo )
 					}
 					
-					screen = screen_ACTION;
-					break;
+					if (e.actions.length > 0){
+						screen = screen_ACTION;
+						break;
+					}
 				}
 			}
 		}
 	});
-	
-	screen_MAIN = {
-		elements: []
-	}
-	b = new TextBox(500, 500, []);
-	b.update = function(){
-		this.text = [];
-		if (currentLot.tiles[cursorY]){
-			if (currentLot.tiles[cursorY][cursorX]){
-				tile = currentLot.tiles[cursorY][cursorX];
-				this.text = [tile.name];
-				this.text[0] += " (" + cursorX + " , " + cursorY + ")";
-			}
-		}
-		this.width = 500;
-		this.x = canvas.width - this.width;
-		this.y = canvas.height - 64;
-	}
-	screen_MAIN.elements.push(b);
-	
-	b = new TextBox(0,0, []);
-	b.update = function(){
-		this.text[0] = "tileX: " + player.tileX + " tileY: " + player.tileY + " tileY2: " + player.tileY2
-	}
-	screen_MAIN.elements.push(b);
-	
-	screen_BUILD = {
-		elements: []
-	}
-	
-	screen_ACTION = {
-		elements: []
-	}
 	
 	screen = screen_MAIN;
 	
@@ -162,10 +116,32 @@ var playerTileCol = function ( dir ){
 			player.tileX > UboundX || player.tileX2 > UboundX || player.tileY > UboundY || player.tileY2 > UboundY	){
 			return false;
 		}
+		var fineX = {
+			"up":0, "down":0, "left":-3, "right":3
+		}
+		var fineY = {
+			"up":-3, "down":3, "left":0, "right":0
+		}
+		var px = player.x + (player.width / 2) + fineX[dir];
+		var py = player.y + (player.height / 2) + fineY[dir];
+		
+		for (key in entities){
+			e = entities[key];
+			
+			if ( ( e.x <= px && px <= e.x + e.width && 
+				   e.y <= py && py <= e.y + e.height ) && e.collide ){
+				
+				return true;
+			}
+		}
+		
+		var tx = Math.floor( px / 8 ) - currentLot.x;
+		var ty = Math.floor( py / 8 ) - currentLot.y;
+		return ( currentLot.tiles[ty][tx].collide );
 		
 		// Unfortunately each direction handles this differently, using the different sides of the quad
 		
-		switch (dir) {
+/* 		switch (dir) {
 		
 			case "up":
 				
@@ -198,7 +174,7 @@ var playerTileCol = function ( dir ){
 					return true;
 				}
 				break;
-		}
+		} */
 	}
 	return false;
 }
@@ -210,30 +186,38 @@ var update = function(){
 	}
 
 	if (87 in keysDown) { // up
-		if (!playerTileCol("up")){
-			player.y--;
+		if (screen == screen_MAIN){
+			if (!playerTileCol("up")){
+				player.y--;
+			}
+		}else if (screen == screen_BUILD){
+			
 		}
 	}
 	
 	if (83 in keysDown) { // down
-		if (!playerTileCol("down")){
-			player.y++;
+		if (screen == screen_MAIN){
+			if (!playerTileCol("down")){
+				player.y++;
+			}
 		}
 	}
 	
 	if (65 in keysDown) { // left
-		
-		if (!playerTileCol("left")){
-			player.x--;
+		if (screen == screen_MAIN){
+			if (!playerTileCol("left")){
+				player.x--;
+			}
+			player.flip = false;
 		}
-		player.flip = false;
 	}
 	if (68 in keysDown) { // right
-		
-		if (!playerTileCol("right")){
-			player.x++;
+		if (screen == screen_MAIN){
+			if (!playerTileCol("right")){
+				player.x++;
+			}
+			player.flip = true;
 		}
-		player.flip = true;
 	}
 	
 	cam_x = player.x;
@@ -295,6 +279,8 @@ var render = function(){
 			ctx.fillText(txt, btn.x+8, btn.y+40);
 		}
 		
+		ctx.fillStyle = "#ffeeff";
+		ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
 	}
 	
 }
@@ -316,6 +302,7 @@ requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame
 var then = performance.now();
 
 document.addEventListener('DOMContentLoaded', function(e) {
+	initGUI();
 	init();
 	main();
 });

@@ -10,10 +10,10 @@ function drawObject( entity, drawX, drawY ){
 		for (q = 0; q < 8; q++){
 		
 			pixel = cbyte & bitmask;
-			px = (pxcount % entity.width);
-			py = Math.floor(pxcount / entity.width);
+			px = (pxcount % entity.renderWidth);
+			py = Math.floor(pxcount / entity.renderWidth);
 			
-			if (entity.flip){ px = entity.width - px - 1 }
+			if (entity.flip){ px = entity.renderWidth - px - 1 }
 		
 			if (pixel > 0){ 
 			

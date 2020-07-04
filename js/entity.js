@@ -5,10 +5,11 @@
 		this.y = y;
 		
 		this.color = "#ffffff";
-		this.height = 8;
-		this.width = 8;
+		this.height = 8; this.width = 8;
+		this.renderHeight = 8; this.renderWidth = 8;
 		this.texture = [ 0x18, 0x24, 0x42, 0x81, 0x81, 0x42, 0x24, 0x18 ];
 		this.flip = false;
+		this.collide = false;
 		
 		this.actions = []; // all the actions associated with this entity on click
 		
@@ -77,16 +78,19 @@ class EntityDoor extends Entity {
 		this.color = "#ffff80";
 		this.texture = [ 0xff, 0x81, 0x81, 0x81, 0x85, 0x81, 0x81, 0x81 ];
 		this.actions = [ ACTION_OPEN_DOOR ];
+		this.collide = true;
 	}
 	
 	open(){
 		this.texture = [ 0xf0, 0x90, 0x90, 0x90, 0xb0, 0x90, 0x90, 0x90 ];
 		this.actions = [ ACTION_CLOSE_DOOR ];
+		this.collide = false;
 	}
 	
 	close(){
 		this.texture = [ 0xff, 0x81, 0x81, 0x81, 0x85, 0x81, 0x81, 0x81 ];
 		this.actions = [ ACTION_OPEN_DOOR ];
+		this.collide = true;
 	}
 }
 

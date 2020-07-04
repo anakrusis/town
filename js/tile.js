@@ -7,6 +7,7 @@ class Tile {
 		this.color = "#ffffff";
 		this.collide = false;
 		this.width = 8; this.height = 8;
+		this.renderWidth = 8; this.renderHeight = 8;
 		
 		tiles.push(this);
 	}
